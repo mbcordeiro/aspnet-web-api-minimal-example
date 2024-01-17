@@ -29,6 +29,27 @@ app.MapPost("/tasks", async (Task task, AppDbContext context) =>
     return Results.Created($"/tasks/{task.Id}", task);
 });
 
+app.MapGet("tasks/{id}", async (int id, Task request, AppDbContext context) =>
+{
+    var task = await context.Tasks.FindAsync(id);
+    if(task is null) return Results.NotFound();
+    task.Name = request.Name;
+    task.IsDone = request.IsDone;
+    await context.SaveChangesAsync();
+    return Results.NoContent();
+});
+
+app.MapDelete("/tasks/{id}", async(int id, AppDbContext context) =>
+{
+    if (await context.Tasks.FindAsync(id) is Task task)
+    {
+        context.Remove(task);
+        await context.SaveChangesAsync();
+        return Results.NoContent();
+    }
+    return Results.NotFound();
+});
+
 app.Run();
 
 class Task
