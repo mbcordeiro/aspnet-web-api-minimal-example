@@ -15,6 +15,20 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.MapGet("/tasks", async (AppDbContext context) => await context.Tasks.ToListAsync());
+
+app.MapGet("/tasks/{id}", async (int id, AppDbContext context) => 
+    await context.Tasks.FindAsync(id) is Task task ? Results.Ok(task) : Results.NotFound());
+
+app.MapGet("/tasks/done", async (AppDbContext context) => await context.Tasks.Where(t => t.IsDone).ToListAsync());
+
+app.MapPost("/tasks", async (Task task, AppDbContext context) =>
+{
+    context.Tasks.Add(task);
+    await context.SaveChangesAsync();
+    return Results.Created($"/tasks/{task.Id}", task);
+});
+
 app.Run();
 
 class Task
